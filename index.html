@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f8f3">
+  <meta name="description" content="军哥懂保的数字生态应用图鉴。浏览11大类、92个功能组，查看真实界面预览、历史版本、用途与本机入口。">
+  <title>数字生态 · 让工具彼此连接</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="ecosystem-data.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#library">跳到应用图鉴</a>
+<header class="site-header">
+  <div class="nav-wrap">
+    <a class="brand" href="#home" aria-label="数字生态首页"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>数字生态<small>JUNGE ECOSYSTEM</small></span></a>
+    <nav aria-label="主导航"><a class="nav-link active" href="#home">生态首页</a><a class="nav-link" href="#library">应用图鉴</a><a class="nav-link" href="#ecosystem">生态图谱</a><a class="nav-link" href="#scenes">场景组合</a></nav>
+    <button class="favorites-nav" id="favoritesNav"><span data-icon="heart"></span>我的收藏 <span id="favoriteCount">0</span></button>
+    <button class="mobile-menu" id="mobileMenu" aria-label="展开导航" aria-expanded="false"><span data-icon="menu"></span></button>
+  </div>
+</header>
+<main>
+<section class="hero wrap" id="home">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="living-dot"></span>个人应用图鉴与生态导航</p>
+    <h1>让好用的工具，<br>长成<span>一个生态。</span></h1>
+    <p class="hero-description">把分散的灵感与应用，连接成自己的数字家园。<br>从保险服务、AI 创作，到每一天的小事，找到下一件好用的工具。</p>
+    <div class="hero-actions"><a class="button primary" href="#library">探索应用图鉴 <span data-icon="arrow-right"></span></a><a class="button text-button" href="#ecosystem">看看它们如何连接 <span data-icon="arrow-up-right"></span></a></div>
+    <div class="hero-stats"><div><strong>11<span>大类</span></strong><small>覆盖工作与生活</small></div><div><strong>92<span>功能组</span></strong><small>按具体用途归类</small></div><div><strong>218<span>项目目录</span></strong><small>保留历史版本线索</small></div></div>
+  </div>
+  <div class="hero-art" aria-label="数字生态应用界面拼贴">
+    <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><span class="orbit-dot dot-one"></span><span class="orbit-dot dot-two"></span>
+    <div class="art-label label-top"><span data-icon="spark"></span>灵感，在这里发生</div>
+    <div class="hero-window window-one"><div class="window-bar"><i></i><i></i><i></i><span>宗亲与服务 · 界面预览</span></div><img src="assets/preview-ren.jpg" alt="泸州任氏宗亲网的服务总览界面" width="1400" height="900"></div>
+    <div class="hero-window window-two"><div class="window-bar"><i></i><i></i><i></i><span>霓虹工坊 · 界面预览</span></div><img src="assets/preview-neon.jpg" alt="霓虹边框图片处理工具界面" width="1400" height="900"></div>
+    <div class="eco-core"><svg viewBox="0 0 60 60" aria-hidden="true"><path d="M30 45V28M30 34C13 34 12 16 12 16s18-3 18 18ZM30 28C30 10 48 12 48 12s3 17-18 16Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="art-label label-bottom"><span class="living-dot"></span>每一个工具，都有它的位置</div><span class="art-caption">CURATED TOOLS. CONNECTED POSSIBILITIES.</span>
+  </div>
+</section>
+<div class="category-ribbon"><div class="wrap"><span>从一个需求出发</span><button data-quick-category="cat1"><span data-icon="shield"></span>保险服务</button><button data-quick-category="cat2"><span data-icon="spark"></span>AI 助理</button><button data-quick-category="cat3"><span data-icon="folder"></span>办公效率</button><button data-quick-category="cat7"><span data-icon="play"></span>内容创作</button><button data-quick-category="cat10"><span data-icon="book"></span>生活日常</button></div></div>
+<section class="section wrap" id="featured">
+  <div class="section-heading"><div><p class="eyebrow">SELECTED FOR YOU</p><h2>先从这些应用认识生态</h2></div><a class="subtle-link" href="#library">浏览全部应用 <span data-icon="arrow-right"></span></a></div>
+  <div class="featured-grid" id="featuredGrid"></div>
+</section>
+<section class="library-section" id="library">
+  <div class="wrap">
+    <div class="section-heading"><div><p class="eyebrow">THE APPLICATION ATLAS</p><h2>你的应用图鉴<span class="heading-count">92</span></h2></div><p class="section-note">认识用途，看看界面，再找到合适的版本。</p></div>
+    <div class="library-tools"><label class="search-box"><span data-icon="search"></span><input type="search" id="searchInput" placeholder="搜索应用、用途或版本…" autocomplete="off" aria-label="搜索应用"><kbd>Ctrl K</kbd></label><select id="sortSelect" aria-label="应用排序"><option value="curated">精选顺序</option><option value="updated">最近更新</option><option value="name">名称排序</option></select><button class="tool-button" id="favoritesFilter" aria-pressed="false"><span data-icon="heart"></span><span>只看收藏</span></button></div>
+    <div class="library-layout"><aside class="category-sidebar"><h3>按用途浏览</h3><div id="categoryNav"></div><div class="snapshot-note"><span class="living-dot"></span>应用档案更新<br><b>2026.10.15</b><p>版本记录来自本次本机盘点。</p></div></aside><div class="library-main"><div class="result-line"><p id="resultLabel" aria-live="polite">全部应用</p><button id="clearFilters" class="clear-filters" hidden>清除筛选 <span data-icon="close"></span></button></div><div class="app-grid" id="appGrid"></div><div class="empty-state" id="emptyState" hidden><span data-icon="search"></span><h3>暂时没有找到匹配的应用</h3><p>试试其他关键词，或清除筛选重新浏览。</p><button class="button secondary" id="emptyReset">查看全部应用</button></div><div class="load-more"><button class="button secondary" id="loadMore">再发现一些应用 <span data-icon="plus"></span></button><p id="loadedCount"></p></div></div></div>
+  </div>
+</section>
+<section class="section wrap" id="ecosystem">
+  <div class="section-heading"><div><p class="eyebrow">ONE CONNECTED ECOSYSTEM</p><h2>在图谱里，找到新的连接</h2></div><p class="section-note">点击一个节点，探索这个领域的应用。</p></div>
+  <div class="ecosystem-panel"><div class="map-legend"><span class="living-dot"></span>11 个领域 · 92 个功能组 <small>按用途建立的分类关系</small></div><div class="ecosystem-map" id="ecosystemMap"></div><div class="map-footer"><span>工具彼此连接，灵感也就有了新的去处。</span><button class="subtle-link" id="mapAll">查看全部领域 <span data-icon="arrow-up-right"></span></button></div></div>
+</section>
+<section class="scenes-section" id="scenes"><div class="wrap"><div class="section-heading"><div><p class="eyebrow">BETTER TOGETHER</p><h2>围绕一个场景，组合你的工具</h2></div><p class="section-note">搭配思路示意，帮助你寻找下一步。<br>组合关系不代表程序已经互相接通。</p></div><div class="scenes-grid" id="scenesGrid"></div></div></section>
+<section class="section wrap latest-section"><div class="section-heading"><div><p class="eyebrow">VERSION NOTES</p><h2>认清版本，少一点翻找</h2></div><p class="section-note">把时间、版本号与运行状态放在一起看。</p></div><div class="version-highlights"><button data-detail="vault"><span class="version-icon" data-icon="lock"></span><div><small>数字保险箱</small><h3>V2.9</h3><p>电脑与安卓交付版本</p></div><span data-icon="arrow-up-right"></span></button><button data-detail="autoclick"><span class="version-icon" data-icon="cursor"></span><div><small>窗口识别自动化</small><h3>v5.2 <em>源码</em></h3><p>EXE 成品另标为 v3.0</p></div><span data-icon="arrow-up-right"></span></button><button data-detail="router"><span class="version-icon" data-icon="spark"></span><div><small>GPT Work Router</small><h3>v1.1</h3><p>保留不同构建与原路径</p></div><span data-icon="arrow-up-right"></span></button></div><p class="version-footnote">“最近更新”按文件修改时间筛选；最高标注版本与可用状态分别记录。APK 文件名与内置版本的差异，已在详情中注明。</p></section>
+</main>
+<footer><div class="wrap footer-top"><a class="brand" href="#home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>数字生态<small>JUNGE ECOSYSTEM</small></span></a><p>让工具有序，让灵感相连。</p><a href="#home" class="back-top">回到顶部 <span data-icon="arrow-up"></span></a></div><div class="wrap footer-bottom"><span>军哥懂保 · 个人应用图鉴</span><span>11 大类 / 92 功能组 / 原盘点 1307 条入口记录</span><button id="aboutButton">关于这份图鉴</button></div></footer>
+<dialog id="detailDialog" class="detail-dialog" aria-labelledby="detailTitle"><button class="dialog-close" id="closeDialog" aria-label="关闭详情"><span data-icon="close"></span></button><div id="detailContent"></div></dialog>
+<dialog id="imageDialog" class="image-dialog" aria-label="应用界面大图"><button class="dialog-close" id="closeImage" aria-label="关闭大图"><span data-icon="close"></span></button><img id="largePreview" alt="应用界面预览大图"><p id="largeCaption"></p></dialog>
+<div class="toast" id="toast" role="status"></div>
+</body></html>
