@@ -1,0 +1,38 @@
+name: 同步到 ecojia.cn
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ecojia
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 写入 SSH 私钥
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ECOJIA_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 118.24.173.246 >> ~/.ssh/known_hosts
+
+      - name: rsync 同步到腾讯云服务器
+        run: |
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.deploy' \
+            -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no" \
+            ./ ubuntu@118.24.173.246:/opt/ecojia/tools/digital-ecosystem/
+
+      - name: 健康检查
+        run: |
+          sleep 5
+          curl -fsS -o /dev/null -w "tools.ecojia.cn 状态码: %{http_code}\n" https://tools.ecojia.cn/digital-ecosystem/index.html
