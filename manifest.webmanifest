@@ -1,0 +1,14 @@
+{
+  "name": "数字生态 · 军哥懂保",
+  "short_name": "数字生态",
+  "description": "11 大类、92 个功能组的个人应用图鉴，收录真实界面预览、历史版本与用途说明。",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fafbf7",
+  "theme_color": "#345e44",
+  "icons": [
+    { "src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
