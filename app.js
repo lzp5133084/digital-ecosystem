@@ -1,8 +1,25 @@
 /* Digital ecosystem: a private, browser-local application atlas. */
 (() => {
   'use strict';
-  const D=window.ECO_DATA;
-  if(!D)return;
+  const CORE=window.ECO_CORE;
+  if(!CORE)return;
+  let D=CORE; // 首屏仅含元数据；打开详情/版本时切换为完整数据
+  let fullDataPromise=null;
+  function loadFullData(){
+    if(window.ECO_DATA){D=window.ECO_DATA;return Promise.resolve(D);}
+    if(fullDataPromise)return fullDataPromise;
+    fullDataPromise=new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      s.src='ecosystem-full.js';
+      s.onload=()=>{D=window.ECO_DATA;resolve(D);};
+      s.onerror=()=>reject(new Error('完整数据加载失败'));
+      document.head.append(s);
+    });
+    return fullDataPromise;
+  }
+  // 空闲时预热完整数据
+  if('requestIdleCallback' in window)requestIdleCallback(()=>loadFullData(),{timeout:3000});
+  else setTimeout(()=>loadFullData(),1500);
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const paths={
@@ -91,7 +108,22 @@
   const dialog=$('detailDialog');
   function appLink(id){const u=new URL(location.href);u.searchParams.set('app',id);u.hash='';return u.toString();}
   function syncUrl(id){try{const u=new URL(location.href);if(id)u.searchParams.set('app',id);else u.searchParams.delete('app');history.replaceState(null,'',u);}catch{}}
-  function openDetail(id){if(!groups[id])return;state.detail=id;state.detailTab='overview';syncUrl(id);renderDetail();if(!dialog.open)dialog.showModal();document.body.style.overflow='hidden';}
+  function openDetail(id){
+    if(!groups[id])return;
+    // 详情需要 branches/versions 完整字段，先确保完整数据已加载
+    const needFull=!window.ECO_DATA;
+    const ready=needFull?loadFullData().then(()=>{buildIndexFromFull();}):Promise.resolve();
+    ready.then(()=>{
+      state.detail=id;state.detailTab='overview';syncUrl(id);renderDetail();
+      if(!dialog.open)dialog.showModal();document.body.style.overflow='hidden';
+    }).catch(()=>{showToast('完整数据加载失败，请检查网络');});
+  }
+  function buildIndexFromFull(){
+    // 完整数据加载后，重建索引，确保 groups 引用最新
+    D=window.ECO_DATA;
+    D.groups.forEach(g=>{groups[g.id]=g;});
+    (D.categories||[]).forEach(c=>{cats[c.id]=c;});
+  }
   function closeDetail(){dialog.close();document.body.style.overflow='';state.detail=null;syncUrl(null);}
   function pathRow(path){return `<div class="path-wrap"><span class="local-path">${esc(path)}</span><button class="copy-path" data-copy="${esc(path)}">复制本机路径</button></div>`;}
   function branchMarkup(b){return `<section class="branch-card"><div class="branch-card-top"><span class="platform-pill">${icon(platformIcon(b.platform))}${esc(b.platform)}</span><time>${esc((b.modified||'时间待核实').replace('T',' ').slice(0,16))}</time></div><h3>${esc(b.name)}</h3><div class="status-note">同类同形态时间最新候选</div>${b.version?`<p class="branch-version">最高可辨标注：${esc(b.version)}${b.version_name!==b.name?' · '+esc(b.version_name):''}<br><small>${esc(b.version_note)}</small></p>`:''}${b.conflict?`<p class="conflict-note">${esc(b.conflict)}</p>`:''}<p class="status-note">${esc(b.status)}</p>${b.note?`<p class="status-note">${esc(b.note)}</p>`:''}${pathRow(b.path)}${b.highest_path&&b.highest_path!==b.path?`<details class="status-note"><summary>最高版本对应路径</summary>${pathRow(b.highest_path)}</details>`:''}</section>`;}
@@ -148,7 +180,7 @@
   }
   const header=document.querySelector('.site-header');
   window.addEventListener('scroll',()=>{if(scrollTick)return;scrollTick=true;requestAnimationFrame(()=>{toggleTop();syncNav();header.classList.toggle('scrolled',window.scrollY>8);scrollTick=false;});},{passive:true});
-  document.addEventListener('error',event=>{const img=event.target;if(!(img instanceof HTMLImageElement)||img.dataset.fallback)return;img.dataset.fallback='1';img.src='assets/cover-eco.svg';},true);
+  document.addEventListener('error',event=>{const img=event.target;if(!(img instanceof HTMLImageElement)||img.dataset.fallback)return;img.dataset.fallback='1';const src=img.src;if(/\.webp$/i.test(src))img.src=src.replace(/\.webp$/i,'.jpg');else img.src='assets/cover-eco.svg';},true);
   $('sortSelect').value=state.sort;
   renderFeatured();renderLibrary();renderMap();renderScenes();hydrateIcons();
   toggleTop();syncNav();
