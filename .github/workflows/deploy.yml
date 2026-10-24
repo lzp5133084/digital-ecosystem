@@ -32,6 +32,11 @@ jobs:
             -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no" \
             ./ ubuntu@118.24.173.246:/opt/ecojia/tools/digital-ecosystem/
 
+      - name: 写入部署 hash 标记
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ubuntu@118.24.173.246 \
+            "echo '${{ github.sha }}' > /opt/ecojia/tools/digital-ecosystem/.deploy-hash"
+
       - name: 健康检查
         run: |
           sleep 5

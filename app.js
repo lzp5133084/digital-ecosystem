@@ -192,6 +192,36 @@
     if(deep&&groups[deep])openDetail(deep);
   })();
   window.ecosystemApp={getState:()=>({...state,saved:[...state.saved]}),groupCount:D.groups.length,categoryCount:D.categories.length,version:'1.1.0',openDetail,closeDetail,shareApp,pickCategory:chooseCategory,search(query=''){state.query=String(query);$('searchInput').value=state.query;state.limit=18;renderLibrary();}};
+  // ==== 轻量本地埋点（不上传，本地统计；通过 ecosystemApp.exportStats() 导出）====
+  const STATS_KEY='junge-ecosystem-stats';
+  let stats={searches:0,detailOpens:0,detailByApp:{},favorites:0,shares:0,errors:[],firstVisit:Date.now(),lastVisit:Date.now()};
+  try{const s=JSON.parse(localStorage.getItem(STATS_KEY)||'null');if(s&&typeof s==='object')stats={...stats,...s,lastVisit:Date.now()};}catch{}
+  function saveStats(){try{localStorage.setItem(STATS_KEY,JSON.stringify(stats));}catch{}}
+  function track(ev,payload){
+    if(ev==='search')stats.searches++;
+    else if(ev==='detail'){stats.detailOpens++;if(payload)stats.detailByApp[payload]=(stats.detailByApp[payload]||0)+1;}
+    else if(ev==='favorite')stats.favorites++;
+    else if(ev==='share')stats.shares++;
+    else if(ev==='error'&&payload){stats.errors.push({t:Date.now(),msg:String(payload).slice(0,200)});if(stats.errors.length>50)stats.errors=stats.errors.slice(-50);}
+    saveStats();
+  }
+  // 挂钩到关键动作
+  const origRender=renderLibrary;
+  let searchTracked=false;
+  $('searchInput').addEventListener('input',()=>{if(!searchTracked&&$('searchInput').value.trim()){track('search');searchTracked=true;setTimeout(()=>searchTracked=false,3000);}});
+  const origOpenDetail=openDetail;
+  openDetail=function(id){track('detail',id);return origOpenDetail(id);};
+  const origShare=shareApp;
+  shareApp=function(id){track('share');return origShare(id);};
+  window.addEventListener('error',e=>track('error',e.message));
+  window.addEventListener('unhandledrejection',e=>track('error','promise:'+String(e.reason).slice(0,80)));
+  // 暴露导出接口
+  window.ecosystemApp.exportStats=function(){
+    const blob=new Blob([JSON.stringify({...stats,exported:Date.now()},null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ecosystem-stats-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+    return stats;
+  };
+  window.ecosystemApp.getStats=()=>({...stats});
   // 注册 Service Worker（生产环境且支持时）
   if('serviceWorker' in navigator && location.protocol.startsWith('http')){
     navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(()=>{/* 离线缓存失败不影响主流程 */});
