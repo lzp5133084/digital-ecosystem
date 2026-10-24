@@ -53,7 +53,7 @@
   const icon=(name,extra='')=>`<svg class="icon ${extra}" viewBox="0 0 24 24" aria-hidden="true">${paths[name]||paths.grid}</svg>`;
   function hydrateIcons(root=document){root.querySelectorAll('[data-icon]').forEach(el=>{el.innerHTML=icon(el.dataset.icon);});}
   const categories=Object.fromEntries(D.categories.map(c=>[c.id,c]));
-  const groups=Object.fromEntries(D.groups.map(g=>[g.id,g]));
+  let groups=Object.fromEntries(D.groups.map(g=>[g.id,g]));
   const priority=['claim','knowledge','aiwork','ren','neon','credit','lead','vault','avatar','qr','community','liveboard','notes','router','autoclick','family','imagegen','copy'];
   let saved=[];
   try{const parsed=JSON.parse(localStorage.getItem('junge-ecosystem-favorites')||'[]');if(Array.isArray(parsed))saved=parsed.filter(id=>groups[id]);}catch{}
@@ -110,19 +110,17 @@
   function syncUrl(id){try{const u=new URL(location.href);if(id)u.searchParams.set('app',id);else u.searchParams.delete('app');history.replaceState(null,'',u);}catch{}}
   function openDetail(id){
     if(!groups[id])return;
-    // 详情需要 branches/versions 完整字段，先确保完整数据已加载
-    const needFull=!window.ECO_DATA;
-    const ready=needFull?loadFullData().then(()=>{buildIndexFromFull();}):Promise.resolve();
-    ready.then(()=>{
+    // 详情总是等待完整数据就绪，确保 branches/versions 可用
+    loadFullData().then(()=>{
+      buildIndexFromFull();
       state.detail=id;state.detailTab='overview';syncUrl(id);renderDetail();
       if(!dialog.open)dialog.showModal();document.body.style.overflow='hidden';
-    }).catch(()=>{showToast('完整数据加载失败，请检查网络');});
+    }).catch(()=>{toast('完整数据加载失败，请检查网络');});
   }
   function buildIndexFromFull(){
     // 完整数据加载后，重建索引，确保 groups 引用最新
     D=window.ECO_DATA;
-    D.groups.forEach(g=>{groups[g.id]=g;});
-    (D.categories||[]).forEach(c=>{cats[c.id]=c;});
+    groups=Object.fromEntries(D.groups.map(g=>[g.id,g]));
   }
   function closeDetail(){dialog.close();document.body.style.overflow='';state.detail=null;syncUrl(null);}
   function pathRow(path){return `<div class="path-wrap"><span class="local-path">${esc(path)}</span><button class="copy-path" data-copy="${esc(path)}">复制本机路径</button></div>`;}
@@ -130,7 +128,9 @@
   function versionsMarkup(g){return `<div class="detail-note">保留 ${g.count} 条应用入口。相同功能的工具可能来自不同项目；相同内容副本会在说明中列出。</div><div class="version-list">${g.versions.map(v=>`<article class="version-row"><div class="tags"><span>${esc(v.platform)}</span>${v.latest?'<span>时间最新候选</span>':''}${v.version_label?'<span>'+esc(v.version_label)+'</span>':''}</div><h4>${esc(v.name)}</h4><p>${v.filename_version?'文件标注 '+esc(v.filename_version)+'　':''}${v.version?'版本 '+esc(v.version)+'　':''}${esc((v.modified||'').slice(0,10))}</p><p>${esc(v.status)}</p>${v.notes?'<p>'+esc(v.notes)+'</p>':''}${pathRow(v.path)}${v.duplicate_paths.length?`<details class="status-note"><summary>另有 ${v.duplicate_paths.length} 个相同文本副本</summary>${v.duplicate_paths.map(pathRow).join('')}</details>`:''}</article>`).join('')}</div>`;}
   function renderDetail(){
     const g=groups[state.detail];if(!g)return;const c=categories[g.category];
-    $('detailContent').innerHTML=`<div class="detail-header"><div class="detail-visual"><img src="${esc(g.cover)}" alt="${esc(g.name)}${esc(g.coverKind)}"><button class="enlarge-button" data-enlarge="${g.id}">${icon('expand')}查看大图</button></div><div class="detail-intro"><p class="eyebrow">${esc(c.name)} / ${esc(g.coverKind)}</p><h2 id="detailTitle">${esc(g.name)}</h2><p>${esc(g.description)}</p><div class="detail-actions"><button class="detail-favorite" data-save="${g.id}" aria-pressed="${state.saved.has(g.id)}">${icon('heart')}${state.saved.has(g.id)?'已收藏 · 点击移除':'加入我的收藏'}</button><button class="detail-share" data-share-app="${g.id}">${icon('share')}分享</button></div></div></div><div class="detail-tabs"><button data-detail-tab="overview" class="${state.detailTab==='overview'?'active':''}">应用与最新版本</button><button data-detail-tab="versions" class="${state.detailTab==='versions'?'active':''}">全部版本记录 (${g.count})</button></div><div class="detail-body">${state.detailTab==='overview'?`<div class="detail-note">这里展示应用档案与原界面图片。使用本机程序时，请复制原路径，在保存程序的电脑上打开。</div>${g.branches.map(branchMarkup).join('')}${!g.branches.length?'<p class="detail-note">主入口及版本仍待核实，可查看全部记录。</p>':''}`:versionsMarkup(g)}</div>`;
+    const branches=g.branches||[];const versions=g.versions||[];
+    const versionsCount=g.count||versions.length;
+    $('detailContent').innerHTML=`<div class="detail-header"><div class="detail-visual"><img src="${esc(g.cover)}" alt="${esc(g.name)}${esc(g.coverKind)}"><button class="enlarge-button" data-enlarge="${g.id}">${icon('expand')}查看大图</button></div><div class="detail-intro"><p class="eyebrow">${esc(c.name)} / ${esc(g.coverKind)}</p><h2 id="detailTitle">${esc(g.name)}</h2><p>${esc(g.description)}</p><div class="detail-actions"><button class="detail-favorite" data-save="${g.id}" aria-pressed="${state.saved.has(g.id)}">${icon('heart')}${state.saved.has(g.id)?'已收藏 · 点击移除':'加入我的收藏'}</button><button class="detail-share" data-share-app="${g.id}">${icon('share')}分享</button></div></div></div><div class="detail-tabs"><button data-detail-tab="overview" class="${state.detailTab==='overview'?'active':''}">应用与最新版本</button><button data-detail-tab="versions" class="${state.detailTab==='versions'?'active':''}">全部版本记录 (${versionsCount})</button></div><div class="detail-body">${state.detailTab==='overview'?`<div class="detail-note">这里展示应用档案与原界面图片。使用本机程序时，请复制原路径，在保存程序的电脑上打开。</div>${branches.map(branchMarkup).join('')}${!branches.length?'<p class="detail-note">主入口及版本仍待核实，可查看全部记录。</p>':''}`:versionsMarkup({...g,versions})}</div>`;
   }
   async function copyText(text){try{await navigator.clipboard.writeText(text);return true;}catch{const t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';const parent=dialog.open?dialog:document.body;parent.append(t);t.focus();t.select();let ok=false;try{ok=document.execCommand('copy');}catch{}t.remove();return ok;}}
   async function copyPath(text){const ok=await copyText(text);toast(ok?'已复制本机路径':'复制未成功，请选中路径后手动复制。');}
@@ -192,4 +192,8 @@
     if(deep&&groups[deep])openDetail(deep);
   })();
   window.ecosystemApp={getState:()=>({...state,saved:[...state.saved]}),groupCount:D.groups.length,categoryCount:D.categories.length,version:'1.1.0',openDetail,closeDetail,shareApp,pickCategory:chooseCategory,search(query=''){state.query=String(query);$('searchInput').value=state.query;state.limit=18;renderLibrary();}};
+  // 注册 Service Worker（生产环境且支持时）
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(()=>{/* 离线缓存失败不影响主流程 */});
+  }
 })();

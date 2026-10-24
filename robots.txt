@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lzp5133084.github.io/digital-ecosystem/sitemap.xml
+Sitemap: https://tools.ecojia.cn/digital-ecosystem/sitemap.xml
