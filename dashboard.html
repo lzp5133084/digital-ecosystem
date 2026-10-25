@@ -149,22 +149,34 @@
     });
   }
 
+  let refreshTimer = null;
+  let abortController = null;
+
   async function fetchStatus(){
+    if(abortController) abortController.abort();
+    abortController = new AbortController();
     try{
       const [st, hist] = await Promise.all([
-        fetch('status.json?_='+Date.now()).then(r=>r.json()),
-        fetch('.status-history.json?_='+Date.now()).then(r=>r.ok?r.json():[]).catch(()=>[])
+        fetch('status.json?_='+Date.now(),{signal:abortController.signal}).then(r=>r.json()),
+        fetch('.status-history.json?_='+Date.now(),{signal:abortController.signal}).then(r=>r.ok?r.json():[]).catch(()=>[])
       ]);
       renderCards(st);
       renderCharts(hist);
     }catch(e){
+      if(e.name==='AbortError') return;
       $('overallText').textContent='数据拉取失败';
       document.querySelector('.dot').className='dot down';
     }
   }
 
   fetchStatus();
-  setInterval(fetchStatus, 30000); // 每 30 秒刷新
+  refreshTimer = setInterval(fetchStatus, 30000); // 每 30 秒刷新
+
+  // 页面卸载时清理，避免控制台出现 ERR_ABORTED 噪音
+  window.addEventListener('beforeunload', () => {
+    if(refreshTimer) clearInterval(refreshTimer);
+    if(abortController) abortController.abort();
+  });
 </script>
 </body>
 </html>
