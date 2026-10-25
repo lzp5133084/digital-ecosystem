@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>数字生态 · 监控大屏</title>
+<style>
+  :root{
+    --bg:#0a0e14; --bg2:#111826; --card:#161f30; --card2:#1a2540;
+    --line:#243352; --text:#e6edf7; --muted:#8aa0c2;
+    --ok:#4ade80; --warn:#fbbf24; --down:#f87171; --info:#38bdf8;
+    --glow:#60a5fa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(circle at 20% 0%,#13203d 0%,var(--bg) 55%);color:var(--text);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;min-height:100vh;padding:20px}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#315738,#4ade80);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 24px rgba(74,222,128,.4)}
+  .brand h1{font-size:20px;font-weight:700;letter-spacing:1px}
+  .brand small{color:var(--muted);font-size:12px;letter-spacing:2px}
+  .status-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;background:var(--card);border:1px solid var(--line);font-size:13px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--muted);box-shadow:0 0 8px currentColor}
+  .dot.ok{background:var(--ok);color:var(--ok);animation:pulse 1.6s infinite}
+  .dot.warn{background:var(--warn);color:var(--warn);animation:pulse 1.6s infinite}
+  .dot.down{background:var(--down);color:var(--down);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .update-time{color:var(--muted);font-size:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px}
+  .card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:18px;position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--glow),transparent)}
+  .card-title{font-size:12px;color:var(--muted);letter-spacing:1.5px;margin-bottom:10px;text-transform:uppercase}
+  .card-value{font-size:32px;font-weight:700;line-height:1}
+  .card-sub{font-size:12px;color:var(--muted);margin-top:6px}
+  .card.ok .card-value{color:var(--ok)}
+  .card.warn .card-value{color:var(--warn)}
+  .card.down .card-value{color:var(--down)}
+  .site-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  .site-row:last-child{border-bottom:none}
+  .site-name{font-size:14px}
+  .site-meta{font-size:11px;color:var(--muted)}
+  .badge{padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600}
+  .badge.ok{background:rgba(74,222,128,.15);color:var(--ok)}
+  .badge.warn{background:rgba(251,191,36,.15);color:var(--warn)}
+  .badge.down{background:rgba(248,113,113,.15);color:var(--down)}
+  .chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:16px}
+  .chart-card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:18px}
+  .chart-wrap{position:relative;height:220px}
+  .footer{text-align:center;color:var(--muted);font-size:11px;margin-top:20px;padding:12px;border-top:1px solid var(--line)}
+  .bar-track{height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:8px}
+  .bar-fill{height:100%;border-radius:4px;transition:width .6s ease;background:linear-gradient(90deg,#4ade80,#38bdf8)}
+  .bar-fill.warn{background:linear-gradient(90deg,#fbbf24,#f59e0b)}
+  .bar-fill.danger{background:linear-gradient(90deg,#f87171,#dc2626)}
+  @media(max-width:600px){.grid{grid-template-columns:1fr}.chart-row{grid-template-columns:1fr}.card-value{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand">
+    <div class="logo">🌐</div>
+    <div>
+      <h1>数字生态 · 监控大屏</h1>
+      <small>ECOSYSTEM MONITORING DASHBOARD</small>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <span class="status-pill"><span class="dot" id="overallDot"></span><span id="overallText">检测中…</span></span>
+    <span class="update-time" id="updateTime">--:--:--</span>
+  </div>
+</div>
+
+<div class="grid" id="cardsGrid"></div>
+
+<div class="chart-row">
+  <div class="chart-card">
+    <div class="card-title">响应时间趋势（最近 6 小时）</div>
+    <div class="chart-wrap"><canvas id="rtChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="card-title">服务器资源占用</div>
+    <div class="chart-wrap"><canvas id="resChart"></canvas></div>
+  </div>
+</div>
+
+<div class="footer">每 2 分钟自动刷新 · 数据来源：腾讯云 118.24.173.246 · 军哥懂保 · 微信 xunijiayuan</div>
+
+<script src="assets/vendor/chart.umd.min.js"></script>
+<script>
+  const fmtTime = s => s ? new Date(s).toLocaleString('zh-CN') : '--';
+  const $ = id => document.getElementById(id);
+
+  function statusBadge(ok){ return ok ? '<span class="badge ok">正常</span>' : '<span class="badge down">异常</span>'; }
+
+  function renderCards(d){
+    const g=d.sites.github, e=d.sites.ecojia;
+    const cards = [
+      {title:'整体状态', cls:d.overall, val:({ok:'● 正常',warn:'● 注意',down:'● 离线'}[d.overall]||'--'), sub:`更新于 ${fmtTime(d.ts)}`},
+      {title:'GitHub Pages', cls:g.ok?'ok':'down', val:g.ok?`${g.status}`:'异常', sub:`${g.ms} ms · ${g.ok?'在线':'离线'}`, url:'https://lzp5133084.github.io/digital-ecosystem/'},
+      {title:'tools.ecojia.cn', cls:e.ok?'ok':'down', val:e.ok?`${e.status}`:'异常', sub:`${e.ms} ms · ${e.ok?'在线':'离线'}`, url:'https://tools.ecojia.cn/digital-ecosystem/'},
+      {title:'双端同步', cls:d.sync.match?'ok':'warn', val:d.sync.match?'✓ 一致':'✗ 偏移', sub:`GitHub: ${d.sync.github_sha||'--'}${d.sync.github_msg?'\n'+d.sync.github_msg:''}`},
+      {title:'SSL 证书', cls:(d.ssl_days_left===null||d.ssl_days_left>30)?'ok':'warn', val:d.ssl_days_left!=null?`${d.ssl_days_left} 天`:'--', sub:'tools.ecojia.cn 剩余有效期'},
+      {title:'服务器磁盘', cls:(d.resources.disk?.pct||0)<80?'ok':'warn', val:d.resources.disk?`${d.resources.disk.pct}%`:'--', sub:`${d.resources.disk?.used_mb}MB / ${d.resources.disk?.total_mb}MB`, bar:d.resources.disk?.pct},
+      {title:'服务器内存', cls:(d.resources.memory?.pct||0)<80?'ok':'warn', val:d.resources.memory?`${d.resources.memory.pct}%`:'--', sub:`${d.resources.memory?.used_mb}MB / ${d.resources.memory?.total_mb}MB`, bar:d.resources.memory?.pct},
+      {title:'系统负载', cls:(d.resources.load?.[0]||0)<2?'ok':'warn', val:d.resources.load?d.resources.load[0].toFixed(2):'--', sub:`1分 / 5分 / 15分${d.resources.load?`\n${d.resources.load.join(' / ')}`:''}`},
+    ];
+    $('cardsGrid').innerHTML = cards.map(c=>`
+      <div class="card ${c.cls}">
+        <div class="card-title">${c.title}</div>
+        <div class="card-value">${c.val}</div>
+        <div class="card-sub" style="white-space:pre-line">${c.sub||''}</div>
+        ${c.bar!=null?`<div class="bar-track"><div class="bar-fill ${c.bar>80?'danger':c.bar>60?'warn':''}" style="width:${c.bar}%"></div></div>`:''}
+      </div>
+    `).join('');
+
+    const map={ok:'ok',warn:'warn',down:'down'};
+    const dot=$('overallDot'); dot.className='dot '+(map[d.overall]||'');
+    $('overallText').textContent = ({ok:'系统正常',warn:'需关注',down:'系统离线'}[d.overall]||'检测中');
+    $('updateTime').textContent = fmtTime(d.ts);
+  }
+
+  let rtChart=null, resChart=null;
+  function renderCharts(history){
+    if(!history||!history.length) return;
+    const labels = history.map(h=>new Date(h.ts).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}));
+    const gh = history.map(h=>h.gh_ms);
+    const eco = history.map(h=>h.eco_ms);
+    const load = history.map(h=>h.load);
+    const mem = history.map(h=>h.mem_pct);
+
+    const opt = {responsive:true,maintainAspectRatio:false,animation:{duration:400},plugins:{legend:{labels:{color:'#8aa0c2'}}},scales:{x:{ticks:{color:'#8aa0c2',maxRotation:0,autoSkip:true,maxTicksLimit:8},grid:{color:'rgba(255,255,255,.05)'}},y:{ticks:{color:'#8aa0c2'},grid:{color:'rgba(255,255,255,.05)'}}}};
+
+    if(rtChart) rtChart.destroy();
+    rtChart = new Chart($('rtChart'),{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'GitHub (ms)',data:gh,borderColor:'#fbbf24',backgroundColor:'rgba(251,191,36,.1)',tension:.3,fill:true},
+        {label:'tools.ecojia (ms)',data:eco,borderColor:'#4ade80',backgroundColor:'rgba(74,222,128,.1)',tension:.3,fill:true},
+      ]},options:opt
+    });
+
+    if(resChart) resChart.destroy();
+    resChart = new Chart($('resChart'),{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'内存占用 (%)',data:mem,borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.1)',tension:.3,fill:true,yAxisID:'y'},
+        {label:'系统负载',data:load,borderColor:'#f87171',backgroundColor:'rgba(248,113,113,.1)',tension:.3,fill:true,yAxisID:'y1'},
+      ]},
+      options:{...opt,scales:{...opt.scales,y:{...opt.scales.y,max:100},y1:{position:'right',ticks:{color:'#8aa0c2'},grid:{display:false}}}}
+    });
+  }
+
+  async function fetchStatus(){
+    try{
+      const [st, hist] = await Promise.all([
+        fetch('status.json?_='+Date.now()).then(r=>r.json()),
+        fetch('.status-history.json?_='+Date.now()).then(r=>r.ok?r.json():[]).catch(()=>[])
+      ]);
+      renderCards(st);
+      renderCharts(hist);
+    }catch(e){
+      $('overallText').textContent='数据拉取失败';
+      document.querySelector('.dot').className='dot down';
+    }
+  }
+
+  fetchStatus();
+  setInterval(fetchStatus, 30000); // 每 30 秒刷新
+</script>
+</body>
+</html>
