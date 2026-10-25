@@ -4,6 +4,19 @@
 > 建议频率：每月 1 次（30 分钟内完成）
 > 维护人：军哥懂保
 
+## 🖥️ 监控大屏（实时）
+
+**地址**：https://tools.ecojia.cn/digital-ecosystem/dashboard.html
+
+每 2 分钟自动采集，每 30 秒前端刷新，展示：
+- 双站点 HTTP 状态与响应时间
+- SSL 证书剩余天数
+- 服务器磁盘 / 内存 / 负载
+- GitHub 与服务器部署 hash 是否一致（同步偏移检测）
+- 最近 6 小时响应时间与资源趋势图
+
+数据来源：`/opt/ecojia/scripts/gen_ecosystem_status.py`（cron 每 2 分钟）
+
 ---
 
 ## 一、5 分钟快检（每周）
