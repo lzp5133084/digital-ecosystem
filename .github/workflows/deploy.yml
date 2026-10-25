@@ -29,6 +29,9 @@ jobs:
             --exclude='.git' \
             --exclude='.github' \
             --exclude='.deploy' \
+            --exclude='status.json' \
+            --exclude='.status-history.json' \
+            --exclude='.deploy-hash' \
             -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no" \
             ./ ubuntu@118.24.173.246:/opt/ecojia/tools/digital-ecosystem/
 
