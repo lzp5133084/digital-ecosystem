@@ -1,0 +1,15 @@
+[Unit]
+Description=数字生态图鉴 告警通知守护进程
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/python3 /opt/ecojia/scripts/ecosystem_alert.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/ecosystem-alert.log
+StandardError=append:/var/log/ecosystem-alert.log
+
+[Install]
+WantedBy=multi-user.target

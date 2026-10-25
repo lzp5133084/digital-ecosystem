@@ -1,0 +1,26 @@
+{
+  "_说明": "数字生态告警通知配置。通道留空则不启用，始终写入本地日志。",
+  "_server酱": "免费微信推送。注册 https://sct.ftqq.com/ 获取 SendKey，填入下方 sendkey",
+  "_飞书": "群机器人 webhook。飞书群设置 → 群机器人 → 添加自定义机器人，复制 webhook",
+  "_邮件": "QQ邮箱需在 邮箱设置→账户→POP3/SMTP 生成授权码（非登录密码）",
+
+  "interval_seconds": 120,
+
+  "channels": {
+    "serverchan": {
+      "sendkey": ""
+    },
+    "feishu": {
+      "webhook": ""
+    },
+    "email": {
+      "enabled": false,
+      "host": "smtp.qq.com",
+      "port": 465,
+      "user": "100469004@qq.com",
+      "password": "",
+      "from": "100469004@qq.com",
+      "to": "100469004@qq.com"
+    }
+  }
+}
